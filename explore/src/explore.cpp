@@ -54,7 +54,6 @@ Explore::Explore()
   : private_nh_("~")
   , tf_listener_(ros::Duration(10.0))
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
-  , move_base_client_("move_base")
   , prev_distance_(0)
   , last_markers_count_(0)
 {
@@ -77,10 +76,8 @@ Explore::Explore()
     marker_array_publisher_ =
         private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
   }
-
-  ROS_INFO("Waiting to connect to move_base server");
-  move_base_client_.waitForServer();
-  ROS_INFO("Connected to move_base server");
+  target_publisher_ =
+        private_nh_.advertise<geometry_msgs::Pose>("explore_target", 10);
 
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
@@ -208,6 +205,13 @@ void Explore::makePlan()
     return;
   }
   geometry_msgs::Point target_position = frontier->centroid;
+    
+  
+  // send goal to move_base if we have something new to pursue
+  geometry_msgs::Pose goal;
+  goal.position = target_position;
+  goal.orientation.w = 1.;
+  target_publisher_.publish(goal);
 
   // time out if we are not making any progress
   bool same_goal = prev_goal_ == target_position;
@@ -230,18 +234,8 @@ void Explore::makePlan()
     return;
   }
 
-  // send goal to move_base if we have something new to pursue
-  move_base_msgs::MoveBaseGoal goal;
-  goal.target_pose.pose.position = target_position;
-  goal.target_pose.pose.orientation.w = 1.;
-  goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
-  goal.target_pose.header.stamp = ros::Time::now();
-  move_base_client_.sendGoal(
-      goal, [this, target_position](
-                const actionlib::SimpleClientGoalState& status,
-                const move_base_msgs::MoveBaseResultConstPtr& result) {
-        reachedGoal(status, result, target_position);
-      });
+
+  
 }
 
 bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
@@ -287,8 +281,7 @@ void Explore::start()
 
 void Explore::stop()
 {
-  move_base_client_.cancelAllGoals();
-  exploring_timer_.stop();
+  // exploring_timer_.stop();
   ROS_INFO("Exploration stopped.");
 }
 
@@ -298,7 +291,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "explore");
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-                                     ros::console::levels::Debug)) {
+                                     ros::console::levels::Info)) {
     ros::console::notifyLoggerLevelsChanged();
   }
   explore::Explore explore;

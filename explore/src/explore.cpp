@@ -86,7 +86,7 @@ Explore::Explore()
 
 Explore::~Explore()
 {
-  stop();
+  // stop();
 }
 
 void Explore::visualizeFrontiers(
@@ -185,7 +185,7 @@ void Explore::makePlan()
   }
 
   if (frontiers.empty()) {
-    stop();
+    // stop();
     return;
   }
 
@@ -201,7 +201,7 @@ void Explore::makePlan()
                          return goalOnBlacklist(f.centroid);
                        });
   if (frontier == frontiers.end()) {
-    stop();
+    // stop();
     return;
   }
   geometry_msgs::Point target_position = frontier->centroid;

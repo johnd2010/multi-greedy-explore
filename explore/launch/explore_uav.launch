@@ -2,7 +2,7 @@
 <arg name="ns" default="$(optenv UAV_NAME)" />
 <node ns="$(arg ns)" pkg="explore_lite" type="explore" respawn="true" name="explore_original" output="screen" >
   <param name="robot_base_frame" value="$(arg ns)/fcu"/>
-  <param name="costmap_topic" value="/$(arg ns)/octree_projected_map"/>
+  <param name="costmap_topic" value="/$(arg ns)/occgrid_merger/octree_projected_map_merged"/>
   <param name="visualize" value="true"/>
   <param name="planner_frequency" value="10"/>
   <param name="progress_timeout" value="10.0"/>

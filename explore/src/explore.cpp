@@ -179,7 +179,7 @@ void Explore::makePlan()
   auto pose = costmap_client_.getRobotPose();
   // get frontiers sorted according to cost
   auto frontiers = search_.searchFrom(pose.position);
-  ROS_DEBUG("found %lu frontiers", frontiers.size());
+  ROS_INFO("found %lu frontiers", frontiers.size());
   for (size_t i = 0; i < frontiers.size(); ++i) {
     ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
   }
@@ -204,7 +204,7 @@ void Explore::makePlan()
     // stop();
     return;
   }
-  geometry_msgs::Point target_position = frontier->centroid;
+  geometry_msgs::Point target_position = frontier->initial;
     
   
   // send goal to move_base if we have something new to pursue
